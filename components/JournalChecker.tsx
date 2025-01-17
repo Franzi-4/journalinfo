@@ -6,9 +6,15 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 
+type JournalResult = {
+    name: string;
+    sjr: number;
+    category: string;
+}
+
 export default function JournalChecker() {
   const [journalName, setJournalName] = useState('')
-  const [result, setResult] = useState<null | { name: string; sjr: number; category: string }>(null)
+  const [result, setResult] = useState<JournalResult | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
 
@@ -19,14 +25,15 @@ export default function JournalChecker() {
     setIsLoading(true)
     try {
       const response = await fetch(`/api/check-journal?name=${encodeURIComponent(journalName)}`)
-      const data = await response.json()
-      if (response.ok) {
-        setResult(data)
-      } else {
-        setError(data.error)
+      if (!response.ok) {
+        const data = await response.json()
+        throw new Error(data.error || 'Failed to fetch journal data')
       }
+      const data: JournalResult = await response.json()
+      console.log('Received journal data:', data)
+      setResult(data)
     } catch (err) {
-      setError('An error occurred while checking the journal. Please try again.')
+      setError(err instanceof Error ? err.message : 'An error occurred while checking the journal')
     } finally {
       setIsLoading(false)
     }
@@ -72,9 +79,9 @@ export default function JournalChecker() {
           <div>
             <h2 className="text-xl font-semibold">{result.name}</h2>
             <p className={getSJRColor(result.sjr)}>
-              SJR Score: {result.sjr.toFixed(3)}
+              SJR Score: {(result.sjr ?? 0).toFixed(3)}
             </p>
-            <p>Category: {result.category}</p>
+            <p>Category: {result.category || 'N/A'}</p>
           </div>
         </CardFooter>
       )}

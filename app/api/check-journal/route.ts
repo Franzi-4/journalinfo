@@ -13,7 +13,7 @@ export async function GET(request: Request) {
 
     try {
         const journals = await fetchJournalData(name)
-        console.log('Search results:', journals)
+        console.log('API route journals:', journals)
         
         if (!journals || journals.length === 0) {
             return NextResponse.json({ 
@@ -22,7 +22,7 @@ export async function GET(request: Request) {
             }, { status: 404 })
         }
 
-        return NextResponse.json(journals)
+        return NextResponse.json(journals[0])
     } catch (error) {
         console.error('Error in check-journal route:', error)
         return NextResponse.json({ 

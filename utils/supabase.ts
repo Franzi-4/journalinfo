@@ -26,13 +26,20 @@ export async function fetchJournalData(searchTitle: string): Promise<Journal[]> 
         return []
     }
 
-    // Transform the data to match our expected format
-    const journals = (data || []).map(journal => ({
-        name: journal.Title,
-        sjr: Number(journal["SJR-index"]),
-        category: journal["Best Categories"]
-    }))
+    console.log('Raw data from Supabase:', data)
 
-    console.log('Search results:', journals)
-    return journals
+    // Transform the data to match our expected format with safety checks
+    const journals = (data || []).map(journal => {
+        const sjrValue = journal["SJR-index"]
+        console.log('SJR value for', journal.Title, ':', sjrValue)
+        
+        return {
+            name: journal.Title || '',
+            sjr: sjrValue ? Number(sjrValue) : 0, // Default to 0 if undefined
+            category: journal["Best Categories"] || ''
+        }
+    })
+
+    console.log('Transformed journals:', journals)
+    return journals.filter(j => j.name && j.sjr !== undefined) // Only return complete entries
 }
