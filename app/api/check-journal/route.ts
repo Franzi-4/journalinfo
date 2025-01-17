@@ -1,66 +1,34 @@
 import { NextResponse } from 'next/server'
-import { fetchJournalData, type Journal } from '@/utils/supabase'
-import { kv } from '@vercel/kv'
-
-let journalsCache: Map<string, Journal> | null = null
-let lastFetchTime = 0
-const CACHE_DURATION = 1000 * 60 * 60 // 1 hour
-
-async function getJournals(): Promise<Map<string, Journal>> {
-  const now = Date.now()
-  
-  if (journalsCache && (now - lastFetchTime) < CACHE_DURATION) {
-    return journalsCache
-  }
-
-  try {
-    const journals = await fetchJournalData()
-    journalsCache = new Map(
-      journals.map(journal => [
-        journal.name.toLowerCase(),
-        journal
-      ])
-    )
-    
-    lastFetchTime = now
-    return journalsCache
-  } catch (error) {
-    console.error('Error fetching journal data:', error)
-    throw new Error('Failed to fetch journal data')
-  }
-}
+import { fetchJournalData } from '@/utils/supabase'
 
 export async function GET(request: Request) {
-  const { searchParams } = new URL(request.url)
-  const name = searchParams.get('name')
+    const { searchParams } = new URL(request.url)
+    const name = searchParams.get('name')
 
-  if (!name) {
-    return NextResponse.json(
-      { error: 'Journal name is required' },
-      { status: 400 }
-    )
-  }
+    console.log('Received search request for:', name)
 
-  try {
-    const journals = await getJournals()
-    const journal = journals.get(name.toLowerCase())
-
-    if (!journal) {
-      return NextResponse.json(
-        { error: 'Journal not in list - try again' },
-        { status: 404 }
-      )
+    if (!name) {
+        return NextResponse.json({ error: 'Journal name is required' }, { status: 400 })
     }
 
-    // Track search analytics
-    await kv.incr(`search:${name.toLowerCase()}`)
-    
-    return NextResponse.json(journal)
-  } catch (error) {
-    return NextResponse.json(
-      { error: 'Failed to check journal. Please try again later.' },
-      { status: 500 }
-    )
-  }
+    try {
+        const journals = await fetchJournalData(name)
+        console.log('Search results:', journals)
+        
+        if (!journals || journals.length === 0) {
+            return NextResponse.json({ 
+                message: 'Journal not found',
+                searchedFor: name 
+            }, { status: 404 })
+        }
+
+        return NextResponse.json(journals)
+    } catch (error) {
+        console.error('Error in check-journal route:', error)
+        return NextResponse.json({ 
+            error: 'Internal server error',
+            details: error instanceof Error ? error.message : 'Unknown error'
+        }, { status: 500 })
+    }
 }
 

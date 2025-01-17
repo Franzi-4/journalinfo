@@ -1,28 +1,4 @@
-[
-  {
-    "name": "Journal of Business Venturing",
-    "sjr": 5.617,
-    "category": "Business and Innovation"
-  },
-  {
-    "name": "Academy of Management Journal",
-    "sjr": 10.767,
-    "category": "Business and Management"
-  },
-  {
-    "name": "Journal of Product Innovation Management",
-    "sjr": 3.848,
-    "category": "Innovation"
-  },
-  {
-    "name": "Research Policy",
-    "sjr": 5.582,
-    "category": "Innovation and Technology Management"
-  },
-  {
-    "name": "Strategic Management Journal",
-    "sjr": 9.425,
-    "category": "Business Strategy"
-  }
-]
+{
+  "journals": []
+}
 
