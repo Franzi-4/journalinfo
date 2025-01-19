@@ -5,11 +5,14 @@ import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import { InfoCircledIcon } from "@radix-ui/react-icons"
 
 type JournalResult = {
     name: string;
     sjr: number;
     category: string;
+    bestQuartile: string;
 }
 
 export default function JournalChecker() {
@@ -45,6 +48,24 @@ export default function JournalChecker() {
     return 'text-red-600'
   }
 
+  const getQuartileColor = (quartile: string) => {
+    if (quartile.includes('Q1')) return 'text-green-600'
+    if (quartile.includes('Q2')) return 'text-yellow-600'
+    return 'text-red-600'
+  }
+
+  const formatJournalName = (name: string) => {
+    if (name.toLowerCase().startsWith('npj ')) {
+      return (
+        <span>
+          <span className="font-medium text-gray-600">npj</span>
+          {name.slice(3)}
+        </span>
+      )
+    }
+    return name
+  }
+
   return (
     <Card className="w-full">
       <CardHeader>
@@ -76,12 +97,69 @@ export default function JournalChecker() {
       )}
       {result && (
         <CardFooter>
-          <div>
-            <h2 className="text-xl font-semibold">{result.name}</h2>
-            <p className={getSJRColor(result.sjr)}>
-              SJR Score: {(result.sjr ?? 0).toFixed(3)}
-            </p>
-            <p>Category: {result.category || 'N/A'}</p>
+          <div className="space-y-2">
+            <h2 className="text-xl font-semibold">
+              {formatJournalName(result.name)}
+            </h2>
+            
+            <div className="flex items-center space-x-2">
+              <p className={getSJRColor(result.sjr)}>
+                SJR Score: {(result.sjr ?? 0).toFixed(3)}
+              </p>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger>
+                    <InfoCircledIcon className="h-4 w-4 text-gray-400" />
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p className="w-[250px] text-sm">
+                      SJR (SCImago Journal Rank) measures scientific influence. 
+                      Scores above 5 are excellent (green), 
+                      above 2 are good (yellow), 
+                      below 2 may need additional quality checks (red).
+                    </p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </div>
+
+            <div className="flex items-center space-x-2">
+              <p className={getQuartileColor(result.bestQuartile)}>
+                Best Quartile: {result.bestQuartile}
+              </p>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger>
+                    <InfoCircledIcon className="h-4 w-4 text-gray-400" />
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p className="w-[250px] text-sm">
+                      Quartile rankings show journal standing: 
+                      Q1 (green) = top 25%, 
+                      Q2 (yellow) = top 25-50%, 
+                      Q3/Q4 (red) = bottom 50%.
+                    </p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </div>
+
+            <div className="flex items-center space-x-2">
+              <p>Category: {result.category || 'N/A'}</p>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger>
+                    <InfoCircledIcon className="h-4 w-4 text-gray-400" />
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p className="w-[250px] text-sm">
+                      The journal's primary research field where it achieved its highest ranking. 
+                      Journals may be ranked differently across multiple categories.
+                    </p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </div>
           </div>
         </CardFooter>
       )}
